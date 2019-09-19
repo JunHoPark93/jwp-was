@@ -7,7 +7,11 @@ import model.http.HttpResponse;
 import model.http.ModelAndView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import resolver.InternalResourceViewResolver;
+import resolver.ViewResolver;
+import resolver.ViewResolverList;
 import utils.FileIoUtils;
+import utils.HttpStatus;
 import utils.RequestHeaderParser;
 
 import java.io.*;
@@ -36,13 +40,20 @@ public class RequestHandler implements Runnable {
 
             Handler mappingHandler = getHandler(httpRequest);
             if (mappingHandler == null) {
-                // TODO httpResponse.sendError("no handler found");
-                throw new RuntimeException();
+                httpResponse.sendError(HttpStatus.NOT_FOUND, "no mappingHandler error");
             }
 
             ModelAndView mav = mappingHandler.handle(httpRequest, httpResponse);
 
             // TODO ViewResolver
+
+            ViewResolver viewResolver = viewResolverHandler(mav);
+            if (viewResolver == null) {
+                httpResponse.sendError(HttpStatus.NOT_FOUND, "no viewResolver error");
+            }
+
+            //viewResolver.resolve(out, httpResponse);
+
             if (httpResponse.hasError()) {
                 handleOutputStream(out, "error.html", httpResponse, TEMPLATE_PATH);
                 return;
@@ -59,6 +70,16 @@ public class RequestHandler implements Runnable {
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
+    }
+
+    private ViewResolver viewResolverHandler(ModelAndView mav) {
+        for (ViewResolver viewResolver : ViewResolverList.VIEW_RESOLVER_LIST) {
+            ViewResolver resolver = viewResolver.getResolver(mav);
+            if (resolver != null) {
+                return resolver;
+            }
+        }
+        return null;
     }
 
     private Handler getHandler(HttpRequest httpRequest) {

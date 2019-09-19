@@ -4,7 +4,8 @@ public enum HttpStatus {
     OK(200, "OK"),
     REDIRECT(302, "FOUND"),
     NOT_ALLOWED(405, "NOT ALLOWED"),
-    FORBIDDEN(403, "FORBIDDEN");
+    FORBIDDEN(403, "FORBIDDEN"),
+    NOT_FOUND(404, "NOT_FOUND");
 
     private final int value;
     private final String reasonPhrase;
@@ -23,6 +24,6 @@ public enum HttpStatus {
     }
 
     public boolean isError() {
-        return this.equals(NOT_ALLOWED) || this.equals(FORBIDDEN);
+        return this.equals(NOT_ALLOWED) || this.equals(FORBIDDEN) || this.equals(NOT_FOUND);
     }
 }
